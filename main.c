@@ -256,6 +256,38 @@ TViz *findEdge(TG *g, int id1, int id2)
 
 void removeEdge(TG *g, int id1, int id2, int orientado)
 {
+    
+    TNo *p = findVertex(g, id1);
+    TViz *v = p->prim_viz;
+    TViz *anterior;
+
+    if(v->id_viz==id2){
+	    
+        anterior=v;
+        v=v->prox_viz;
+        p->prim_viz=v;
+	    
+        free(anterior);
+        anterior=NULL;
+    }else {
+	    
+        anterior = v;
+        v=v->prox_viz;
+	    
+        while (v) {
+		
+            if(v->id_viz==id2){
+                anterior->prox_viz=v->prox_viz;
+                free(v);
+                v=anterior;
+                break;
+            }
+            anterior = v;
+            v=v->prox_viz;
+        }
+    }
+    if(orientado==0)
+        removeEdge(g,id2,id1,1);
 }
 
 /* Exibe o grafo na tela */
@@ -458,6 +490,87 @@ void achaPontes(TG *g){                     //METODO SIMPLES
         }
         p=p->prox_no;
     }
+}
+void pilhaIni(TP* pilha){
+    pilha->prox=NULL;
+
+}
+void push(TP *pilha,int val){
+    TP *novaPilha=(TP*)malloc(sizeof(TP));
+    novaPilha->id=val;
+    novaPilha->prox=NULL;
+    if(pilha->prox == NULL)pilha->prox=novaPilha;
+    else{
+        TP *p=pilha->prox;
+        while (p->prox){
+            p=p->prox;
+        }
+        p->prox=novaPilha;
+    }
+}
+void insertStack(TP * pilha,int val){
+    TP *p=pilha->prox;
+    while(p){
+        if(p->id==val)return;
+        p=p->prox;
+    }
+    push(pilha,val);
+}
+void showStack(TP *pilha){
+    TP *p=pilha->prox;
+    printf("\nArticulacoes: (");
+    while (p){
+        printf("%d",p->id);
+        if(p->prox)printf(" ,");
+        p=p->prox;
+    }
+    printf(")");
+
+}
+void libera(TP* pilha){
+    TP *p=pilha->prox,*temp;
+    if(p){
+        while (p){
+            temp=p;
+            p=p->prox;
+            free(temp);
+        }
+        free(pilha);
+    }
+}
+void achaArticulacao(TG *g){                     //encontra articulacoes e guarda o resultado numa pilha
+
+    TNo *p=g->prim_no,*v1,*v2;
+    int id1,id2,ultimo;
+    TP *pilha=(TP*)malloc(sizeof(TP));		//cria a pilha resultado
+    pilhaIni(pilha);
+
+    while(p){
+        id1=p->id_no;
+        TViz *v=p->prim_viz;
+        ultimo=findLastId(v);
+        while(v){
+            TViz *proximo=v->prox_viz;
+            id2=v->id_viz;
+            removeEdge(g,id1,id2,0);			//remove a aresta
+            if(sair_chegar(g,id1,id2,0)==0){		//verifica se e ponte
+                if(id1<id2){
+                    v1=findVertex(g,id1);		
+                    v2=findVertex(g,id2);
+
+                    if(v1->prim_viz)insertStack(pilha,id1);	//se o vertice origem tem alguma aresta ele e uma articulacao
+
+                    if(v2->prim_viz)insertStack(pilha,id2);	//se o vertice destino tem alguma aresta ele e uma articulacao
+                }
+            }
+            insertEdge(g,id1,id2,0);
+            v=proximo;
+            if(ultimo==id2)break;
+        }
+        p=p->prox_no;
+    }
+    showStack(pilha);					//mostra resultado
+    libera(pilha);					//libera memoria da pilha
 }
 
 
