@@ -27,4 +27,9 @@ typedef struct grafo
 	
 } TG;
 
+typedef struct pilha{
+    int id;
+    struct pilha *prox;
+} TP;
+
 #endif // MAIN_H
