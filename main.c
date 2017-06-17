@@ -481,8 +481,7 @@ void achaPontes(TG *g){                     //METODO SIMPLES
             id2=v->id_viz;
             removeEdge(g,id1,id2,0);
             if(sair_chegar(g,id1,id2,0)==0){
-                if(id1<id2)
-                    printf("(%d,%d) e ponte\n", id1, id2);
+                printf("(%d,%d) e ponte\n", id1, id2);
             }
             insertEdge(g,id1,id2,0);
             v=proximo;
@@ -554,7 +553,6 @@ void achaArticulacao(TG *g){                     //encontra articulacoes e guard
             id2=v->id_viz;
             removeEdge(g,id1,id2,0);			//remove a aresta
             if(sair_chegar(g,id1,id2,0)==0){		//verifica se e ponte
-                if(id1<id2){
                     v1=findVertex(g,id1);		
                     v2=findVertex(g,id2);
 
