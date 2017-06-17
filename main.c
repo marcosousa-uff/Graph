@@ -428,6 +428,39 @@ void fortemente_conexos(TG *g)
 		printf("\tNenhum\n");
 }
 
+int findLastId(TViz *v){
+    while(v){
+        if(!v->prox_viz)return v->id_viz;
+        v=v->prox_viz;
+    }
+    return 0;
+}
+
+void achaPontes(TG *g){                     //METODO SIMPLES
+    TNo *p=g->prim_no;
+    int id1,id2,ultimo;
+
+    while(p){
+        id1=p->id_no;
+        TViz *v=p->prim_viz;
+        ultimo=findLastId(v);
+        while(v){
+            TViz *proximo=v->prox_viz;
+            id2=v->id_viz;
+            removeEdge(g,id1,id2,0);
+            if(sair_chegar(g,id1,id2,0)==0){
+                if(id1<id2)
+                    printf("(%d,%d) e ponte\n", id1, id2);
+            }
+            insertEdge(g,id1,id2,0);
+            v=proximo;
+            if(ultimo==id2)break;
+        }
+        p=p->prox_no;
+    }
+}
+
+
 
 int menu(TG *G)
 {
