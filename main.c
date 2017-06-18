@@ -468,32 +468,6 @@ int findLastId(TViz *v){
     return 0;
 }
 
-void achaPontes(TG *g){                     //METODO SIMPLES
-    TNo *p=g->prim_no;
-    int id1,id2,ultimo;
-
-    while(p){
-        id1=p->id_no;
-        TViz *v=p->prim_viz;
-        ultimo=findLastId(v);
-        while(v){
-            TViz *proximo=v->prox_viz;
-            id2=v->id_viz;
-            removeEdge(g,id1,id2,0);
-            if(sair_chegar(g,id1,id2,0)==0){
-                printf("(%d,%d) e ponte\n", id1, id2);
-            }
-            insertEdge(g,id1,id2,0);
-            v=proximo;
-            if(ultimo==id2)break;
-        }
-        p=p->prox_no;
-    }
-}
-void pilhaIni(TP* pilha){
-    pilha->prox=NULL;
-
-}
 void push(TP *pilha,int val){
     TP *novaPilha=(TP*)malloc(sizeof(TP));
     novaPilha->id=val;
@@ -537,6 +511,73 @@ void libera(TP* pilha){
         free(pilha);
     }
 }
+int buscaVisitado(TP *pilha,int val){
+    TP *p=pilha->prox;
+    for (int i = 1; i <=val ; ++i) {
+        p=p->prox;
+    }
+    return  p->id;
+}
+void insereVisitado(TP *pilha,int val){
+    TP *p=pilha->prox;
+    for (int i = 0; i <val ; ++i) {
+        p=p->prox;
+    }
+    p->id=1;
+}
+void caminho(TG *g,int id1,TP *pilha){
+    insereVisitado(pilha,id1);
+    TNo *p = findVertex(g, id1);
+    if(p) {
+        TViz *v=p->prim_viz;
+
+        while (v) {
+            if(buscaVisitado(pilha,v->id_viz)==0)
+                caminho(g,v->id_viz,pilha);
+            v=v->prox_viz;
+        }
+    }
+}
+int encontraCaminho(TG *g, int id1, int id2){
+    TNo *p=g->prim_no;
+    int result =0;
+    TP *pilha =(TP*)malloc(sizeof(TP));
+    pilhaIni(pilha);
+
+    while (p){
+        push(pilha,0);
+        p=p->prox_no;
+    }
+    caminho(g,id1,pilha);
+    result =buscaVisitado(pilha,id2);
+    libera(pilha);
+    return  result;
+
+
+}
+void achaPontes(TG *g){                     //METODO SIMPLES
+    TNo *p=g->prim_no;
+    int id1,id2,ultimo;
+
+    while(p){
+        id1=p->id_no;
+        TViz *v=p->prim_viz;
+        ultimo=findLastId(v);
+        while(v){
+            TViz *proximo=v->prox_viz;
+            id2=v->id_viz;
+            removeEdge(g,id1,id2,0);
+            if(!encontraCaminho(g,id1,id2)){
+                if(id1<id2)
+                    printf("(%d,%d) e ponte\n", id1, id2);
+            }
+            insertEdge(g,id1,id2,0);
+            v=proximo;
+            if(ultimo==id2)break;
+        }
+        p=p->prox_no;
+    }
+}
 void achaArticulacao(TG *g){                     //encontra articulacoes e guarda o resultado numa pilha
 
     TNo *p=g->prim_no,*v1,*v2;
@@ -552,7 +593,7 @@ void achaArticulacao(TG *g){                     //encontra articulacoes e guard
             TViz *proximo=v->prox_viz;
             id2=v->id_viz;
             removeEdge(g,id1,id2,0);			//remove a aresta
-            if(sair_chegar(g,id1,id2,0)==0){		//verifica se e ponte
+            if(!encontraCaminho(g,id1,id2)){		//verifica se e ponte
                     v1=findVertex(g,id1);		
                     v2=findVertex(g,id2);
 
